@@ -22,9 +22,9 @@ def main():
         description='Combine all SEC analysis reports for a date into one big markdown file',
         epilog='''
 Examples:
-  python combine_reports.py --date 2025-01-30
-  python combine_reports.py --date 2025-01-30 --reports-dir /custom/reports
-  python combine_reports.py --date 2025-01-30 --output combined_analysis.md
+  python combine_reports.py --date 2025-05-30
+  python combine_reports.py --date 2025-05-30 --reports-dir /custom/reports
+  python combine_reports.py --date 2025-05-30 --output combined_analysis.md
         ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )

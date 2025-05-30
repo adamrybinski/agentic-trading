@@ -635,7 +635,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Generate comprehensive SEC analysis reports')
     parser.add_argument('--date', type=str, help='Date to generate reports for (YYYY-MM-DD)', 
-                       default='2025-01-30')
+                       default=date.today().strftime('%Y-%m-%d'))
     parser.add_argument('--max-companies', type=int, default=15,
                        help='Maximum number of companies to analyze')
     parser.add_argument('--storage-path', type=str, default='sec_data',

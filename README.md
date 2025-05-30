@@ -51,22 +51,22 @@ python main.py --no-analysis
 #### Combine all reports into one big markdown file:
 ```bash
 # Combine reports for a specific date
-python combine_reports.py --date 2025-01-30
+python combine_reports.py --date 2025-05-30
 
 # Use custom reports directory
-python combine_reports.py --date 2025-01-30 --reports-dir /path/to/reports
+python combine_reports.py --date 2025-05-30 --reports-dir /path/to/reports
 
 # Save with custom filename
-python combine_reports.py --date 2025-01-30 --output combined_analysis.md
+python combine_reports.py --date 2025-05-30 --output combined_analysis.md
 ```
 
 #### Combine reports using the main report generator:
 ```bash
 # Generate new reports and combine them
-python fixed_reports.py --date 2025-01-30
+python fixed_reports.py --date 2025-05-30
 
 # Only combine existing reports (no regeneration)
-python fixed_reports.py --date 2025-01-30 --combine-only
+python fixed_reports.py --date 2025-05-30 --combine-only
 ```
 
 ### Directory Structure
