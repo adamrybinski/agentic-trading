@@ -1,0 +1,16 @@
+name: "Copilot Setup Steps"
+on: workflow_dispatch
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SWI-Prolog
+        uses: logtalk-actions/setup-swi-prolog@master
+        with:
+          swi-prolog-version: "latest"
