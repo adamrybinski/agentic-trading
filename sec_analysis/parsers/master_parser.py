@@ -13,7 +13,7 @@ class MasterIndexParser:
     """Parses SEC master index files and extracts filing information."""
     
     # Target form types for analysis
-    TARGET_FORMS = {'10-K', '10-Q', '8-K', 'DEF 14A'}
+    TARGET_FORMS = {'10-K', '10-Q', '8-K', 'DEF 14A', 'NT 10-K', 'NT 10-Q', '10-K/A', '10-Q/A', 'SCHEDULE 13G', 'SCHEDULE 13G/A'}
     
     def __init__(self):
         """Initialize the parser."""
@@ -65,7 +65,7 @@ class MasterIndexParser:
         Parse a single line from the master index.
         
         The format is typically:
-        Form Type|Company Name|CIK|Date Filed|Filename
+        CIK|Company Name|Form Type|Date Filed|File Name
         """
         # Clean the line
         line = line.strip()
@@ -74,7 +74,7 @@ class MasterIndexParser:
         if '|' in line:
             parts = [part.strip() for part in line.split('|')]
             if len(parts) >= 5:
-                form_type, company_name, cik, date_filed, filename = parts[:5]
+                cik, company_name, form_type, date_filed, filename = parts[:5]
                 return self._create_entry(cik, company_name, form_type, date_filed, filename)
         
         # Try space-delimited format (older format)
