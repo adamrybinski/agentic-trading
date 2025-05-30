@@ -31,8 +31,7 @@ class PlaywrightSECFetcher:
         try:
             from playwright.async_api import async_playwright
             
-            self.playwright = async_playwright()
-            await self.playwright.start()
+            self.playwright = await async_playwright().start()
             
             # Launch browser with proper settings for SEC.gov
             self.browser = await self.playwright.chromium.launch(
@@ -51,10 +50,11 @@ class PlaywrightSECFetcher:
             logger.info("Playwright browser setup completed")
             
         except ImportError:
-            logger.error("Playwright not installed. Install with: pip install playwright")
+            logger.error("Playwright not installed. Install with: pip install playwright && python -m playwright install chromium")
             raise
         except Exception as e:
             logger.error(f"Failed to setup Playwright browser: {e}")
+            logger.warning("This could be due to missing browser binaries. Try: python -m playwright install chromium")
             raise
     
     async def download_master_index_browser(self, target_date: date) -> Optional[str]:
@@ -148,7 +148,7 @@ class PlaywrightSECFetcher:
         try:
             if self.browser:
                 await self.browser.close()
-            if hasattr(self, 'playwright'):
+            if hasattr(self, 'playwright') and self.playwright:
                 await self.playwright.stop()
             logger.info("Browser cleanup completed")
         except Exception as e:
