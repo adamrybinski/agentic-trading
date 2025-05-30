@@ -40,11 +40,22 @@ class MasterIndexEntry(BaseModel):
     def to_filing(self) -> Filing:
         """Convert to a Filing object with proper URL."""
         base_url = "https://www.sec.gov/Archives/"
+        
+        # Parse date string - handle different formats
+        if len(self.date_filed) == 8:  # YYYYMMDD
+            parsed_date = date(
+                int(self.date_filed[:4]),
+                int(self.date_filed[4:6]),
+                int(self.date_filed[6:8])
+            )
+        else:  # YYYY-MM-DD
+            parsed_date = date.fromisoformat(self.date_filed)
+        
         return Filing(
             cik=self.cik.zfill(10),
             company_name=self.company_name,
             form_type=self.form_type,
-            date_filed=date.fromisoformat(self.date_filed.replace('-', '-')),
+            date_filed=parsed_date,
             filename=self.filename,
             url=f"{base_url}{self.filename}"
         )

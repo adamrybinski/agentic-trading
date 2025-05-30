@@ -65,7 +65,7 @@ class MasterIndexParser:
         Parse a single line from the master index.
         
         The format is typically:
-        CIK|Company Name|Form Type|Date Filed|Filename
+        Form Type|Company Name|CIK|Date Filed|Filename
         """
         # Clean the line
         line = line.strip()
@@ -74,7 +74,7 @@ class MasterIndexParser:
         if '|' in line:
             parts = [part.strip() for part in line.split('|')]
             if len(parts) >= 5:
-                cik, company_name, form_type, date_filed, filename = parts[:5]
+                form_type, company_name, cik, date_filed, filename = parts[:5]
                 return self._create_entry(cik, company_name, form_type, date_filed, filename)
         
         # Try space-delimited format (older format)
