@@ -51,6 +51,10 @@ class EnhancedSECAnalyzer:
             logger.info("Attempting to download master index via HTTP requests")
             return self.fetcher.download_master_index(target_date)
         except Exception as e:
+            # Check if this is a 403 error which might mean data isn't available yet
+            if "403" in str(e):
+                logger.warning(f"SEC data for {target_date} may not be available yet (403 error). "
+                             f"SEC filings are typically available 1-2 business days after filing.")
             logger.warning(f"HTTP requests failed: {e}. Trying Playwright browser fallback...")
             try:
                 content = await self.playwright_fetcher.download_master_index_browser(target_date)
@@ -61,7 +65,14 @@ class EnhancedSECAnalyzer:
                     raise Exception("Playwright fetcher returned no content")
             except Exception as browser_error:
                 logger.error(f"Both HTTP and browser fetchers failed. HTTP: {e}, Browser: {browser_error}")
-                raise Exception(f"All fetching methods failed. Last error: {browser_error}")
+                
+                # Provide more helpful error message for common issues
+                if "403" in str(e):
+                    raise Exception(f"SEC data for {target_date} is not available. "
+                                  f"This could be because: 1) It's too recent (try a date 1-2 days ago), "
+                                  f"2) It's a weekend/holiday, or 3) No filings were made on this date.")
+                else:
+                    raise Exception(f"All fetching methods failed. Last error: {browser_error}")
             finally:
                 await self.playwright_fetcher.cleanup()
 
