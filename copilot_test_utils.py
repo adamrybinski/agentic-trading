@@ -148,6 +148,58 @@ def test_prolog():
     return gen_results['success'] and analysis_results['success']
 
 
+def trigger_post_session_tests(pr_number, session_summary=None):
+    """
+    Trigger post-session testing workflow that will comment as adamrybinski
+    
+    This should be called before ending an agent session to schedule
+    automated testing and commenting on the PR.
+    
+    Args:
+        pr_number (str|int): PR number to comment on
+        session_summary (str): Summary of what was accomplished
+        
+    Returns:
+        bool: True if successfully triggered, False otherwise
+    """
+    try:
+        from agent_session_trigger import trigger_completion_tests
+        return trigger_completion_tests(pr_number, session_summary)
+    except ImportError:
+        print("❌ agent_session_trigger module not found")
+        return False
+    except Exception as e:
+        print(f"❌ Error triggering post-session tests: {e}")
+        return False
+
+
+def complete_session(pr_number, session_summary=None):
+    """
+    Complete an agent session by triggering post-session tests
+    
+    This is a convenience function that combines session completion
+    with automatic test triggering.
+    
+    Args:
+        pr_number (str|int): PR number to comment on
+        session_summary (str): Summary of what was accomplished
+    """
+    print("🏁 Completing agent session...")
+    
+    if session_summary:
+        print(f"📋 Session summary: {session_summary}")
+    
+    success = trigger_post_session_tests(pr_number, session_summary)
+    
+    if success:
+        print("✅ Post-session tests scheduled successfully!")
+        print("🔄 adamrybinski will comment with results in ~30 seconds")
+    else:
+        print("❌ Failed to schedule post-session tests")
+    
+    return success
+
+
 if __name__ == '__main__':
     # If run directly, run all tests
     success = test_all()
