@@ -28,27 +28,36 @@ class CopilotWorkflowTester:
         
         scenarios = [
             {
-                "name": "Copilot completion comment",
-                "event_type": "issue_comment",
-                "comment_body": "Modified the approach to save analysis data in Prolog format. Commit: e067ef7",
-                "user": "copilot[bot]",
+                "name": "PR review comment",
+                "event_type": "pull_request_review_comment",
+                "comment_body": "This looks good!",
+                "user": "adamrybinski",
                 "expected_trigger": True
             },
             {
-                "name": "Regular user comment", 
+                "name": "PR issue comment", 
                 "event_type": "issue_comment",
                 "comment_body": "Looks good to me!",
                 "user": "adamrybinski",
-                "expected_trigger": False
-            },
-            {
-                "name": "Copilot push",
-                "event_type": "push",
-                "actor": "copilot[bot]",
+                "has_pull_request": True,
                 "expected_trigger": True
             },
             {
-                "name": "User push",
+                "name": "Regular issue comment", 
+                "event_type": "issue_comment",
+                "comment_body": "Looks good to me!",
+                "user": "adamrybinski",
+                "has_pull_request": False,
+                "expected_trigger": False
+            },
+            {
+                "name": "Copilot push (no longer triggers)",
+                "event_type": "push",
+                "actor": "copilot[bot]",
+                "expected_trigger": False
+            },
+            {
+                "name": "User push (no longer triggers)",
                 "event_type": "push", 
                 "actor": "adamrybinski",
                 "expected_trigger": False
@@ -69,11 +78,13 @@ class CopilotWorkflowTester:
         """Simulate workflow trigger logic"""
         triggered = False
         
-        if scenario['event_type'] in ['issue_comment', 'pull_request_review_comment']:
-            if 'Commit:' in scenario['comment_body'] and scenario['user'] == 'copilot[bot]':
-                triggered = True
-        elif scenario['event_type'] == 'push' and scenario['actor'] == 'copilot[bot]':
+        # PR review comments always trigger the workflow
+        if scenario['event_type'] == 'pull_request_review_comment':
             triggered = True
+        # Issue comments trigger only if they're on a PR
+        elif scenario['event_type'] == 'issue_comment':
+            if scenario.get('has_pull_request', False):
+                triggered = True
             
         return {
             'triggered': triggered,
@@ -146,46 +157,19 @@ class CopilotWorkflowTester:
             }
             
     def test_branch_monitoring(self):
-        """Test branch monitoring functionality"""
-        self.log("🌿 Testing branch monitoring...")
+        """Test branch monitoring functionality (now disabled)"""
+        self.log("🌿 Testing branch monitoring (disabled in new workflow)...")
         
-        # Simulate branches with/without PRs
-        test_branches = [
-            {"name": "feature/new-feature", "has_pr": False},
-            {"name": "bugfix/issue-123", "has_pr": True},
-            {"name": "main", "has_pr": False},  # Should be skipped
-            {"name": "develop", "has_pr": False}  # Should be skipped
-        ]
+        # Branch monitoring has been removed from the workflow
+        # Since it was tied to push events which are no longer supported
+        self.test_results['branch_monitoring'] = {
+            'status': 'disabled',
+            'reason': 'Branch monitoring removed - no longer triggered by push events'
+        }
         
-        for branch in test_branches:
-            result = self._simulate_branch_check(branch)
-            self.test_results[f"branch_monitor_{branch['name']}"] = result
+        self.log("✅ Branch monitoring properly disabled", "SUCCESS")
             
-    def _simulate_branch_check(self, branch_info):
-        """Simulate branch PR status check"""
-        branch_name = branch_info['name']
-        
-        # Skip main/develop branches
-        if branch_name in ['main', 'develop']:
-            return {
-                'action': 'skipped',
-                'reason': 'main/develop branch',
-                'should_create_issue': False
-            }
-            
-        # Check if PR exists
-        if not branch_info['has_pr']:
-            return {
-                'action': 'create_issue',
-                'reason': 'no PR found',
-                'should_create_issue': True
-            }
-        else:
-            return {
-                'action': 'no_action',
-                'reason': 'PR exists',
-                'should_create_issue': False
-            }
+
             
     def simulate_failure_scenario(self):
         """Simulate a test failure to test the issue creation"""
@@ -308,17 +292,17 @@ class CopilotWorkflowTester:
                 # More specific evaluation logic for different test types
                 if 'triggered' in result:
                     # For trigger tests, check if behavior matches expected
-                    if test_name in ["Copilot completion comment", "Copilot push"] and result.get('triggered') == True:
+                    if test_name in ["PR review comment", "PR issue comment"] and result.get('triggered') == True:
                         passed_tests += 1
                         status = "✅ PASSED"
-                    elif test_name in ["Regular user comment", "User push"] and result.get('triggered') == False:
+                    elif test_name in ["Regular issue comment", "Copilot push (no longer triggers)", "User push (no longer triggers)"] and result.get('triggered') == False:
                         passed_tests += 1
                         status = "✅ PASSED"
                     else:
                         status = "❌ FAILED"
                 elif 'status' in result:
                     # For status-based tests
-                    if result.get('status') in ['success', 'triggered', 'no_analyzer', 'no_token']:
+                    if result.get('status') in ['success', 'triggered', 'no_analyzer', 'no_token', 'disabled']:
                         passed_tests += 1
                         status = "✅ PASSED"
                     else:

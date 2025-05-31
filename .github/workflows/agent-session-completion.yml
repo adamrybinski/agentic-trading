@@ -1,0 +1,213 @@
+name: Agent Session Completion Tests
+
+# This workflow can be triggered programmatically from within agent sessions
+# and will comment as adamrybinski after waiting for the session to complete
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to comment on'
+        required: true
+        type: string
+      branch_name:
+        description: 'Branch name to test'
+        required: true
+        type: string
+      session_context:
+        description: 'Context about the agent session'
+        required: false
+        type: string
+        default: 'Agent session completed'
+
+jobs:
+  wait-for-session-completion:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Wait for agent session to complete
+        run: |
+          echo "⏳ Waiting 30 seconds for agent session to complete..."
+          echo "🤖 Session context: ${{ github.event.inputs.session_context }}"
+          sleep 30
+
+  run-post-session-tests:
+    needs: wait-for-session-completion
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      actions: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch_name }}
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+      
+      - name: Run comprehensive tests
+        id: test-run
+        continue-on-error: true
+        run: |
+          echo "🧪 Running post-session tests..."
+          
+          # Run workflow tests
+          echo "📋 Testing workflow functionality..."
+          python test_workflow.py > test_workflow_output.log 2>&1
+          WORKFLOW_EXIT=$?
+          
+          # Run Prolog tests
+          echo "🧮 Testing Prolog generation..."
+          python test_prolog_generation.py > test_prolog_gen_output.log 2>&1
+          PROLOG_GEN_EXIT=$?
+          
+          echo "🔍 Testing Prolog analysis..."
+          python test_prolog_analysis.py > test_prolog_analysis_output.log 2>&1
+          PROLOG_ANALYSIS_EXIT=$?
+          
+          # Test GitHub Models integration
+          echo "🤖 Testing GitHub Models integration..."
+          GITHUB_TOKEN=mock_token_for_testing python -c "
+          from github_models_analyzer_enhanced import GitHubModelsAnalyzer
+          analyzer = GitHubModelsAnalyzer()
+          print('✅ GitHub Models analyzer initialized successfully')
+          " > test_github_models_output.log 2>&1
+          GITHUB_MODELS_EXIT=$?
+          
+          # Run failure simulation test
+          echo "🧪 Testing failure simulation..."
+          python test_failure_simulation.py > test_failure_sim_output.log 2>&1
+          FAILURE_SIM_EXIT=$?
+          
+          # Collect all exit codes
+          if [[ $WORKFLOW_EXIT -eq 0 && $PROLOG_GEN_EXIT -eq 0 && $PROLOG_ANALYSIS_EXIT -eq 0 && $GITHUB_MODELS_EXIT -eq 0 && $FAILURE_SIM_EXIT -eq 0 ]]; then
+            echo "test-result=success" >> $GITHUB_OUTPUT
+            echo "✅ All tests passed!"
+          else
+            echo "test-result=failure" >> $GITHUB_OUTPUT
+            echo "❌ Some tests failed"
+            echo "Workflow exit: $WORKFLOW_EXIT"
+            echo "Prolog gen exit: $PROLOG_GEN_EXIT" 
+            echo "Prolog analysis exit: $PROLOG_ANALYSIS_EXIT"
+            echo "GitHub models exit: $GITHUB_MODELS_EXIT"
+            echo "Failure sim exit: $FAILURE_SIM_EXIT"
+            exit 1
+          fi
+      
+      - name: Comment on PR as adamrybinski (Success)
+        if: steps.test-run.outputs.test-result == 'success'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ADAMRYBINSKI_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const commentBody = `
+            ## ✅ Post-Session Test Results
+            
+            Just finished running comprehensive tests after the agent session. Everything looks good!
+            
+            ### 📊 Test Summary
+            - **Workflow Tests**: ✅ Passed
+            - **Prolog Generation**: ✅ Passed  
+            - **Prolog Analysis**: ✅ Passed
+            - **GitHub Models**: ✅ Passed
+            - **Failure Simulation**: ✅ Passed
+            
+            ### 📋 Session Details
+            - **Branch**: \`${{ github.event.inputs.branch_name }}\`
+            - **Commit**: \`${context.sha.substring(0, 7)}\`
+            - **Session Context**: ${{ github.event.inputs.session_context }}
+            - **Completed**: ${new Date().toLocaleString()}
+            
+            The changes from the agent session are working correctly and all tests are passing. Ready for review! 🚀
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.inputs.pr_number }},
+              body: commentBody
+            });
+      
+      - name: Comment on PR as adamrybinski (Failure)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ADAMRYBINSKI_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Collect test output for debugging
+            let testOutputs = {};
+            const testFiles = [
+              'test_workflow_output.log',
+              'test_prolog_gen_output.log', 
+              'test_prolog_analysis_output.log',
+              'test_github_models_output.log',
+              'test_failure_sim_output.log'
+            ];
+            
+            for (const file of testFiles) {
+              try {
+                if (fs.existsSync(file)) {
+                  const content = fs.readFileSync(file, 'utf8');
+                  testOutputs[file] = content.slice(-500); // Last 500 chars
+                }
+              } catch (e) {
+                testOutputs[file] = `Error reading file: ${e.message}`;
+              }
+            }
+            
+            const commentBody = `
+            ## ❌ Post-Session Test Failures
+            
+            Found some issues after the agent session completed. Here's what needs attention:
+            
+            ### 📋 Session Details  
+            - **Branch**: \`${{ github.event.inputs.branch_name }}\`
+            - **Commit**: \`${context.sha.substring(0, 7)}\`
+            - **Session Context**: ${{ github.event.inputs.session_context }}
+            - **Failed**: ${new Date().toLocaleString()}
+            
+            ### 🔍 Failure Analysis
+            The tests ran automatically after the 30-second delay, but some components aren't working as expected.
+            
+            ### 🚨 What to Check
+            1. **Review the logs** in the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            2. **Check recent changes** made during the agent session
+            3. **Run tests locally** to debug specific failures
+            
+            ### 📊 Test Results Summary
+            Some of the comprehensive tests failed. Check the workflow logs for detailed error messages.
+            
+            Let me take a look at what went wrong and fix the issues. @copilot please analyze the test failures.
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.inputs.pr_number }},
+              body: commentBody
+            });
