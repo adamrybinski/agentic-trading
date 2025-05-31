@@ -35,10 +35,19 @@ class CopilotWorkflowTester:
                 "expected_trigger": True
             },
             {
+                "name": "PR issue comment", 
+                "event_type": "issue_comment",
+                "comment_body": "Looks good to me!",
+                "user": "adamrybinski",
+                "has_pull_request": True,
+                "expected_trigger": True
+            },
+            {
                 "name": "Regular issue comment", 
                 "event_type": "issue_comment",
                 "comment_body": "Looks good to me!",
                 "user": "adamrybinski",
+                "has_pull_request": False,
                 "expected_trigger": False
             },
             {
@@ -69,9 +78,13 @@ class CopilotWorkflowTester:
         """Simulate workflow trigger logic"""
         triggered = False
         
-        # Only PR review comments trigger the workflow now
+        # PR review comments always trigger the workflow
         if scenario['event_type'] == 'pull_request_review_comment':
             triggered = True
+        # Issue comments trigger only if they're on a PR
+        elif scenario['event_type'] == 'issue_comment':
+            if scenario.get('has_pull_request', False):
+                triggered = True
             
         return {
             'triggered': triggered,
@@ -279,7 +292,7 @@ class CopilotWorkflowTester:
                 # More specific evaluation logic for different test types
                 if 'triggered' in result:
                     # For trigger tests, check if behavior matches expected
-                    if test_name == "PR review comment" and result.get('triggered') == True:
+                    if test_name in ["PR review comment", "PR issue comment"] and result.get('triggered') == True:
                         passed_tests += 1
                         status = "✅ PASSED"
                     elif test_name in ["Regular issue comment", "Copilot push (no longer triggers)", "User push (no longer triggers)"] and result.get('triggered') == False:
