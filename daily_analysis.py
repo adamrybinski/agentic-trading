@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from enhanced_sec_analysis import EnhancedSECAnalyzer
 from sec_analysis.models.analysis import AnalysisResult
+from github_models_analyzer import GitHubModelsAnalyzer
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +41,7 @@ class DailyAnalysisOrchestrator:
         self.storage_path = storage_path
         self.reports_path = reports_path
         self.analyzer = EnhancedSECAnalyzer(storage_path, reports_path)
+        self.llm_analyzer = GitHubModelsAnalyzer()
         
         # Load prompts
         self.system_prompt = self._load_prompt("charlie_munger_system_prompt.txt")
@@ -120,20 +122,94 @@ class DailyAnalysisOrchestrator:
     
     def _has_github_models_access(self) -> bool:
         """Check if GitHub Models API is available."""
-        github_token = os.getenv('GITHUB_TOKEN')
-        return github_token is not None
+        return self.llm_analyzer.is_available()
     
     async def _enhance_with_llm_analysis(self, target_date: date):
         """Enhance analysis results with LLM insights using GitHub Models."""
-        logger.info("LLM enhancement feature not yet implemented")
-        # TODO: Implement GitHub Models integration
-        # This would:
-        # 1. Load analysis results for the date
-        # 2. For each company, format the user prompt with their data
-        # 3. Call GitHub Models API with system and user prompts
-        # 4. Parse LLM response and append to reports
-        # 5. Generate enhanced summary
-        pass
+        if not self.llm_analyzer.is_available():
+            logger.warning("GitHub Models not available, skipping LLM enhancement")
+            return
+        
+        if not self.system_prompt or not self.user_prompt_template:
+            logger.warning("Charlie Munger prompts not loaded, skipping LLM enhancement")
+            return
+        
+        logger.info("Starting LLM enhancement of analysis results...")
+        
+        try:
+            # Load analysis results for the date
+            analysis_results = self._load_analysis_results(target_date)
+            
+            enhanced_count = 0
+            failed_count = 0
+            
+            # Enhance each analysis with LLM
+            for analysis_result in analysis_results:
+                try:
+                    enhanced_content = await self.llm_analyzer.enhance_analysis(
+                        analysis_result, 
+                        self.system_prompt, 
+                        self.user_prompt_template
+                    )
+                    
+                    if enhanced_content:
+                        # Save enhanced analysis
+                        date_str = target_date.strftime('%Y-%m-%d')
+                        self.llm_analyzer.save_enhanced_analysis(
+                            analysis_result.cik,
+                            date_str,
+                            enhanced_content,
+                            self.reports_path
+                        )
+                        enhanced_count += 1
+                    else:
+                        failed_count += 1
+                        
+                except Exception as e:
+                    logger.error(f"Failed to enhance analysis for {analysis_result.company_name}: {e}")
+                    failed_count += 1
+            
+            logger.info(f"LLM enhancement complete: {enhanced_count} enhanced, {failed_count} failed")
+            
+        except Exception as e:
+            logger.error(f"LLM enhancement failed: {e}")
+    
+    def _load_analysis_results(self, target_date: date) -> List[AnalysisResult]:
+        """Load analysis results for a date."""
+        analysis_results = []
+        
+        try:
+            date_str = target_date.strftime('%Y-%m-%d')
+            reports_dir = Path(self.reports_path) / date_str
+            
+            if not reports_dir.exists():
+                logger.warning(f"Reports directory not found: {reports_dir}")
+                return analysis_results
+            
+            # Find all company directories
+            for company_dir in reports_dir.iterdir():
+                if company_dir.is_dir() and company_dir.name.isdigit():
+                    # Look for analysis JSON files
+                    json_files = list(company_dir.glob("*_analysis.json"))
+                    if json_files:
+                        try:
+                            json_file = json_files[0]
+                            with open(json_file, 'r') as f:
+                                analysis_data = json.load(f)
+                            
+                            # Convert to AnalysisResult object
+                            analysis_result = AnalysisResult(**analysis_data)
+                            analysis_results.append(analysis_result)
+                            
+                        except Exception as e:
+                            logger.warning(f"Failed to load analysis from {json_file}: {e}")
+            
+            logger.info(f"Loaded {len(analysis_results)} analysis results for {target_date}")
+            
+        except Exception as e:
+            logger.error(f"Failed to load analysis results: {e}")
+        
+        return analysis_results
     
     def _generate_analysis_summary(self, target_date: date, results: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a summary of the analysis."""

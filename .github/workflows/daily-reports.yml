@@ -1,10 +1,10 @@
 name: Daily SEC Analysis Reports
 
-on:
+"on":
   # Run daily at 6 AM UTC (after markets close)
   schedule:
     - cron: '0 6 * * *'
-  
+
   # Allow manual triggering
   workflow_dispatch:
     inputs:
