@@ -66,6 +66,11 @@ jobs:
           print('✅ GitHub Models analyzer initialized successfully')
           "
       
+      - name: Run failure simulation test
+        run: |
+          echo "🧪 Running failure simulation test..."
+          python test_failure_simulation.py
+      
       - name: Validate file structures
         run: |
           echo "🧪 Validating file structures..."

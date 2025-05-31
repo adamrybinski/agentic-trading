@@ -137,8 +137,13 @@ jobs:
           " > test_github_models_output.log 2>&1
           GITHUB_MODELS_EXIT=$?
           
+          # Run failure simulation test
+          echo "🧪 Testing failure simulation..."
+          python test_failure_simulation.py > test_failure_sim_output.log 2>&1
+          FAILURE_SIM_EXIT=$?
+          
           # Collect all exit codes
-          if [[ $WORKFLOW_EXIT -eq 0 && $PROLOG_GEN_EXIT -eq 0 && $PROLOG_ANALYSIS_EXIT -eq 0 && $GITHUB_MODELS_EXIT -eq 0 ]]; then
+          if [[ $WORKFLOW_EXIT -eq 0 && $PROLOG_GEN_EXIT -eq 0 && $PROLOG_ANALYSIS_EXIT -eq 0 && $GITHUB_MODELS_EXIT -eq 0 && $FAILURE_SIM_EXIT -eq 0 ]]; then
             echo "test-result=success" >> $GITHUB_OUTPUT
             echo "✅ All tests passed!"
           else
@@ -148,6 +153,7 @@ jobs:
             echo "Prolog gen exit: $PROLOG_GEN_EXIT" 
             echo "Prolog analysis exit: $PROLOG_ANALYSIS_EXIT"
             echo "GitHub models exit: $GITHUB_MODELS_EXIT"
+            echo "Failure sim exit: $FAILURE_SIM_EXIT"
             exit 1
           fi
       
