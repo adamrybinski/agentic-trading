@@ -176,3 +176,4 @@ cython_debug/
 # SEC Analysis System data directories
 sec_data/
 sec_analysis.log
+*.json
