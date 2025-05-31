@@ -1,0 +1,63 @@
+{
+  "Copilot completion comment": {
+    "triggered": true,
+    "scenario": "Copilot completion comment",
+    "timestamp": "2025-05-31T09:46:42.887520"
+  },
+  "Regular user comment": {
+    "triggered": false,
+    "scenario": "Regular user comment",
+    "timestamp": "2025-05-31T09:46:42.887536"
+  },
+  "Copilot push": {
+    "triggered": true,
+    "scenario": "Copilot push",
+    "timestamp": "2025-05-31T09:46:42.887547"
+  },
+  "User push": {
+    "triggered": false,
+    "scenario": "User push",
+    "timestamp": "2025-05-31T09:46:42.887556"
+  },
+  "ai_summary": {
+    "status": "no_analyzer",
+    "summary": "Fallback: Basic error reporting would be used"
+  },
+  "branch_monitor_feature/new-feature": {
+    "action": "create_issue",
+    "reason": "no PR found",
+    "should_create_issue": true
+  },
+  "branch_monitor_bugfix/issue-123": {
+    "action": "no_action",
+    "reason": "PR exists",
+    "should_create_issue": false
+  },
+  "branch_monitor_main": {
+    "action": "skipped",
+    "reason": "main/develop branch",
+    "should_create_issue": false
+  },
+  "branch_monitor_develop": {
+    "action": "skipped",
+    "reason": "main/develop branch",
+    "should_create_issue": false
+  },
+  "failure_simulation": {
+    "status": "triggered",
+    "details": {
+      "exit_code": 1,
+      "error_message": "Simulated test failure for demonstration",
+      "affected_tests": [
+        "test_workflow.py",
+        "test_prolog_analysis.py"
+      ],
+      "timestamp": "2025-05-31T09:46:46.017230"
+    }
+  },
+  "issue_format": {
+    "valid": true,
+    "missing_elements": [],
+    "assignee_correct": true
+  }
+}

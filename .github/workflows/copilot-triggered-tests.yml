@@ -1,0 +1,409 @@
+name: Copilot Triggered Tests
+
+# This workflow is triggered when Copilot comments that it has finished a task
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request:
+    types: [synchronize, opened]
+  push:
+    branches: ['**']  # Listen to all branches
+
+jobs:
+  check-copilot-completion:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, 'Commit:')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, 'Commit:')) ||
+      (github.event_name == 'push' && github.actor == 'copilot[bot]') ||
+      (github.event_name == 'pull_request' && github.actor == 'copilot[bot]')
+    
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      actions: write
+    
+    outputs:
+      should-run-tests: ${{ steps.check.outputs.should-run }}
+      branch-name: ${{ steps.check.outputs.branch }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Check if tests should run
+        id: check
+        run: |
+          echo "Checking if Copilot has finished a task..."
+          
+          # Check for completion indicators in comments
+          if [[ "${{ github.event_name }}" == "issue_comment" ]] || [[ "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
+            COMMENT_BODY="${{ github.event.comment.body }}"
+            if [[ "$COMMENT_BODY" == *"Commit:"* ]] && [[ "${{ github.event.comment.user.login }}" == "copilot[bot]" ]]; then
+              echo "✅ Copilot completion comment detected"
+              echo "should-run=true" >> $GITHUB_OUTPUT
+              echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Not a Copilot completion comment"
+              echo "should-run=false" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${{ github.event_name }}" == "push" ]] && [[ "${{ github.actor }}" == "copilot[bot]" ]]; then
+            echo "✅ Push by Copilot detected"
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "❌ No Copilot completion detected"
+            echo "should-run=false" >> $GITHUB_OUTPUT
+          fi
+
+  wait-for-copilot:
+    needs: check-copilot-completion
+    runs-on: ubuntu-latest
+    if: needs.check-copilot-completion.outputs.should-run-tests == 'true'
+    
+    steps:
+      - name: Wait for potential additional commits
+        run: |
+          echo "⏳ Waiting 30 seconds for any additional commits..."
+          sleep 30
+
+  run-tests:
+    needs: [check-copilot-completion, wait-for-copilot]
+    runs-on: ubuntu-latest
+    if: needs.check-copilot-completion.outputs.should-run-tests == 'true'
+    timeout-minutes: 30
+    
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      actions: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+      
+      - name: Run comprehensive tests
+        id: test-run
+        continue-on-error: true
+        run: |
+          echo "🧪 Running comprehensive tests..."
+          
+          # Run workflow tests
+          echo "📋 Testing workflow functionality..."
+          python test_workflow.py > test_workflow_output.log 2>&1
+          WORKFLOW_EXIT=$?
+          
+          # Run Prolog tests
+          echo "🧮 Testing Prolog generation..."
+          python test_prolog_generation.py > test_prolog_gen_output.log 2>&1
+          PROLOG_GEN_EXIT=$?
+          
+          echo "🔍 Testing Prolog analysis..."
+          python test_prolog_analysis.py > test_prolog_analysis_output.log 2>&1
+          PROLOG_ANALYSIS_EXIT=$?
+          
+          # Test GitHub Models integration
+          echo "🤖 Testing GitHub Models integration..."
+          GITHUB_TOKEN=mock_token_for_testing python -c "
+          from github_models_analyzer_enhanced import GitHubModelsAnalyzer
+          analyzer = GitHubModelsAnalyzer()
+          print('✅ GitHub Models analyzer initialized successfully')
+          " > test_github_models_output.log 2>&1
+          GITHUB_MODELS_EXIT=$?
+          
+          # Collect all exit codes
+          if [[ $WORKFLOW_EXIT -eq 0 && $PROLOG_GEN_EXIT -eq 0 && $PROLOG_ANALYSIS_EXIT -eq 0 && $GITHUB_MODELS_EXIT -eq 0 ]]; then
+            echo "test-result=success" >> $GITHUB_OUTPUT
+            echo "✅ All tests passed!"
+          else
+            echo "test-result=failure" >> $GITHUB_OUTPUT
+            echo "❌ Some tests failed"
+            echo "Workflow exit: $WORKFLOW_EXIT"
+            echo "Prolog gen exit: $PROLOG_GEN_EXIT" 
+            echo "Prolog analysis exit: $PROLOG_ANALYSIS_EXIT"
+            echo "GitHub models exit: $GITHUB_MODELS_EXIT"
+            exit 1
+          fi
+      
+      # Simulate failure for testing (as requested)
+      - name: Simulate test failure for demonstration
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, 'test-failure-simulation')
+        run: |
+          echo "🎭 Simulating test failure for demonstration purposes..."
+          echo "This is a simulated failure to test the issue creation workflow"
+          exit 1
+      
+      - name: Generate AI-enhanced issue summary on failure
+        if: failure()
+        id: ai-summary
+        run: |
+          echo "🤖 Generating AI-enhanced failure summary..."
+          
+          # Collect test outputs
+          WORKFLOW_OUTPUT=""
+          if [[ -f test_workflow_output.log ]]; then
+            WORKFLOW_OUTPUT=$(tail -50 test_workflow_output.log)
+          fi
+          
+          PROLOG_OUTPUT=""
+          if [[ -f test_prolog_analysis_output.log ]]; then
+            PROLOG_OUTPUT=$(tail -30 test_prolog_analysis_output.log)
+          fi
+          
+          # Create a comprehensive error report
+          ERROR_CONTEXT="
+          Test Failure Context:
+          - Branch: ${{ github.ref_name }}
+          - Commit: ${{ github.sha }}
+          - Triggered by: ${{ github.actor }}
+          - Event: ${{ github.event_name }}
+          
+          Workflow Output (last 50 lines):
+          $WORKFLOW_OUTPUT
+          
+          Prolog Test Output (last 30 lines):
+          $PROLOG_OUTPUT
+          "
+          
+          # Use GitHub Models to enhance the error analysis (if available)
+          python3 << 'EOF' > ai_summary_output.txt
+          import os
+          import json
+          import sys
+          
+          try:
+              from github_models_analyzer_enhanced import GitHubModelsAnalyzer
+              
+              if os.getenv('GITHUB_TOKEN') and os.getenv('GITHUB_TOKEN') != 'mock_token_for_testing':
+                  analyzer = GitHubModelsAnalyzer()
+                  
+                  error_context = """$ERROR_CONTEXT"""
+                  
+                  prompt = f"""
+                  Analyze this CI/CD test failure and provide a concise summary:
+                  
+                  {error_context}
+                  
+                  Please provide:
+                  1. Root cause analysis (2-3 sentences)
+                  2. Recommended fix (bullet points)
+                  3. Priority level (High/Medium/Low)
+                  4. Estimated effort (Quick fix/Medium/Complex)
+                  
+                  Keep the response under 200 words and focus on actionable insights.
+                  """
+                  
+                  try:
+                      analysis = analyzer.analyze_text(prompt, model="gpt-4o-mini")
+                      print(f"AI_ENHANCED_SUMMARY={analysis}")
+                  except Exception as e:
+                      print(f"AI_FALLBACK_SUMMARY=AI analysis unavailable: {str(e)}")
+              else:
+                  print("AI_FALLBACK_SUMMARY=No GitHub token available for AI analysis")
+                  
+          except ImportError:
+              print("AI_FALLBACK_SUMMARY=GitHub Models analyzer not available")
+          except Exception as e:
+              print(f"AI_FALLBACK_SUMMARY=Error during AI analysis: {str(e)}")
+          EOF
+          
+          # Read the AI output
+          AI_OUTPUT=$(cat ai_summary_output.txt)
+          echo "$AI_OUTPUT" >> $GITHUB_OUTPUT
+      
+      - name: Create enhanced issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Get AI summary if available
+            let aiSummary = "No AI analysis available";
+            try {
+              const outputFile = fs.readFileSync('ai_summary_output.txt', 'utf8');
+              const match = outputFile.match(/AI_.*?SUMMARY=(.+)/);
+              if (match) {
+                aiSummary = match[1];
+              }
+            } catch (e) {
+              console.log('Could not read AI summary:', e.message);
+            }
+            
+            const title = `🚨 Copilot-Triggered Test Failure - Run #${context.runNumber}`;
+            const body = `
+            ## 🤖 AI-Enhanced Test Failure Report
+            
+            ### 📊 Failure Summary
+            ${aiSummary}
+            
+            ### 📋 Technical Details
+            - **Workflow:** ${context.workflow}
+            - **Run Number:** ${context.runNumber}
+            - **Branch:** ${context.ref}
+            - **Commit:** ${context.sha.substring(0, 7)}
+            - **Triggered by:** ${context.actor}
+            - **Event:** ${context.eventName}
+            
+            ### 🔍 Failure Analysis
+            - **Job:** ${{ github.job }}
+            - **Time:** ${new Date().toISOString()}
+            - **Repository:** ${context.payload.repository.html_url}
+            
+            ### 🎯 Next Steps
+            1. 📋 Review the workflow logs for detailed error messages
+            2. 🔧 Check test artifacts for debugging information  
+            3. 🚀 Fix failing tests and push new commit
+            4. 🤖 This will trigger automatic re-testing
+            
+            ### 🔗 Resources
+            - [View Full Logs](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            - [Repository](${context.payload.repository.html_url})
+            - [Compare Changes](${context.payload.repository.html_url}/compare/${context.sha.substring(0, 7)}^...${context.sha.substring(0, 7)})
+            
+            ### 🏷️ Auto-Generated Tags
+            This issue was automatically created by the Copilot-triggered testing workflow.
+            
+            ---
+            *Created by: adamrybinski via automated CI/CD*
+            *Contact: adam@compose.systems*
+            `;
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'ci-failure', 'automated', 'copilot-triggered'],
+              assignees: ['adamrybinski']  // Assign to adamrybinski as requested
+            });
+            
+            console.log('Created issue:', issue.data.html_url);
+            
+            // Try to trigger agent session (if copilot app is available)
+            try {
+              const comment = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.data.number,
+                body: `@copilot Please analyze this test failure and suggest fixes.
+                
+                This issue was automatically generated after a Copilot-triggered test run failed.
+                
+                Key areas to investigate:
+                - CI/CD pipeline configuration
+                - Test dependencies and setup
+                - Prolog integration issues
+                - GitHub Models API connectivity
+                
+                Please provide specific recommendations for resolving the failures.`
+              });
+              
+              console.log('Added copilot mention comment to trigger agent session');
+            } catch (e) {
+              console.log('Could not add copilot comment:', e.message);
+            }
+
+  check-branch-pr-status:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    
+    steps:
+      - name: Check if branch has associated PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+            console.log(`Checking PR status for branch: ${branch}`);
+            
+            // Skip main/develop branches
+            if (['main', 'develop'].includes(branch)) {
+              console.log('Skipping main/develop branch');
+              return;
+            }
+            
+            try {
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branch}`,
+                state: 'all'
+              });
+              
+              if (prs.length === 0) {
+                console.log(`No PR found for branch ${branch}, creating issue...`);
+                
+                const issue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `🔔 Branch "${branch}" needs PR - Auto-detected`,
+                  body: `
+                  ## 🌿 Branch Without Pull Request Detected
+                  
+                  ### 📋 Details
+                  - **Branch:** \`${branch}\`
+                  - **Latest Commit:** ${context.sha.substring(0, 7)}
+                  - **Pushed by:** ${context.actor}
+                  - **Time:** ${new Date().toISOString()}
+                  
+                  ### 🎯 Action Required
+                  This branch has commits but no associated Pull Request.
+                  
+                  **Recommended Actions:**
+                  1. 🚀 Create a Pull Request for this branch
+                  2. 📝 Add appropriate description and reviewers
+                  3. 🏷️ Apply relevant labels
+                  
+                  ### 🔗 Quick Actions
+                  [Create PR for this branch](${context.payload.repository.html_url}/compare/main...${branch}?quick_pull=1)
+                  
+                  ### 🤖 Copilot Integration
+                  @copilot Please help create a proper Pull Request for this branch if the changes are ready for review.
+                  
+                  ---
+                  *Auto-generated by branch monitoring workflow*
+                  *Contact: adam@compose.systems*
+                  `,
+                  labels: ['needs-pr', 'automated', 'branch-monitoring'],
+                  assignees: ['adamrybinski']
+                });
+                
+                console.log('Created issue for branch without PR:', issue.data.html_url);
+              } else {
+                console.log(`Found ${prs.length} PR(s) for branch ${branch}`);
+              }
+            } catch (error) {
+              console.error('Error checking PR status:', error.message);
+            }

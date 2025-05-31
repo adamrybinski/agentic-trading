@@ -136,12 +136,19 @@ jobs:
             
             ### Workflow Run
             [View full logs](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            
+            ---
+            *Created by: adamrybinski via automated CI/CD*
+            *Contact: adam@compose.systems*
             `;
             
-            github.rest.issues.create({
+            const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
               body: body,
-              labels: ['bug', 'ci-failure', 'automated']
+              labels: ['bug', 'ci-failure', 'automated'],
+              assignees: ['adamrybinski']  // Assign to adamrybinski as requested
             });
+            
+            console.log('Created issue on behalf of adamrybinski:', issue.data.html_url);
