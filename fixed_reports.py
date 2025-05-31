@@ -485,6 +485,148 @@ Based on Charlie Munger's investment framework:
             
         except Exception as e:
             logger.error(f"Failed to generate executive summary: {e}")
+    
+    def combine_all_reports(self, target_date: date, reports_base_dir: str = "reports"):
+        """Combine all reports for a given date into one big markdown file."""
+        try:
+            logger.info(f"Combining all reports for {target_date}")
+            
+            # Determine reports directory for the date
+            date_str = target_date.strftime('%Y-%m-%d')
+            reports_dir = Path(reports_base_dir) / date_str
+            
+            if not reports_dir.exists():
+                logger.error(f"Reports directory does not exist: {reports_dir}")
+                return
+            
+            # Start building the combined markdown content
+            combined_content = []
+            
+            # Add header and title
+            combined_content.append(f"# Combined SEC Analysis Reports - {target_date.strftime('%B %d, %Y')}")
+            combined_content.append("")
+            combined_content.append("---")
+            combined_content.append("")
+            
+            # Add table of contents
+            combined_content.append("## Table of Contents")
+            combined_content.append("")
+            combined_content.append("1. [Executive Summary](#executive-summary)")
+            combined_content.append("2. [Individual Company Analysis](#individual-company-analysis)")
+            combined_content.append("3. [CSV Data Summary](#csv-data-summary)")
+            combined_content.append("")
+            combined_content.append("---")
+            combined_content.append("")
+            
+            # Include executive summary if it exists
+            executive_summary_path = reports_dir / f"executive_summary_{target_date.strftime('%Y%m%d')}.md"
+            if executive_summary_path.exists():
+                logger.info(f"Adding executive summary from {executive_summary_path}")
+                combined_content.append("## Executive Summary")
+                combined_content.append("")
+                summary_content = executive_summary_path.read_text()
+                # Remove the first line (title) to avoid duplication
+                summary_lines = summary_content.split('\n')
+                if summary_lines and summary_lines[0].startswith('#'):
+                    summary_lines = summary_lines[1:]
+                combined_content.append('\n'.join(summary_lines))
+                combined_content.append("")
+                combined_content.append("---")
+                combined_content.append("")
+            
+            # Add individual company reports
+            combined_content.append("## Individual Company Analysis")
+            combined_content.append("")
+            
+            # Find all company directories (CIK directories)
+            company_dirs = [d for d in reports_dir.iterdir() if d.is_dir() and d.name.isdigit()]
+            company_dirs.sort(key=lambda x: x.name)  # Sort by CIK
+            
+            if not company_dirs:
+                combined_content.append("No individual company reports found.")
+                combined_content.append("")
+            else:
+                for i, company_dir in enumerate(company_dirs, 1):
+                    # Find the markdown file in the company directory
+                    md_files = list(company_dir.glob("*.md"))
+                    if md_files:
+                        md_file = md_files[0]  # Take the first (should be only one)
+                        logger.info(f"Adding company report from {md_file}")
+                        
+                        # Read the company report
+                        company_content = md_file.read_text()
+                        
+                        # Add company section divider
+                        combined_content.append(f"### Company {i}: {md_file.stem.replace('_', ' ').title()}")
+                        combined_content.append("")
+                        
+                        # Add the content, removing the main title to avoid duplication
+                        company_lines = company_content.split('\n')
+                        if company_lines and company_lines[0].startswith('#'):
+                            company_lines = company_lines[1:]
+                        combined_content.append('\n'.join(company_lines))
+                        combined_content.append("")
+                        combined_content.append("---")
+                        combined_content.append("")
+            
+            # Add CSV data summary if it exists
+            csv_summary_path = reports_dir / f"munger_analysis_summary_{target_date.strftime('%Y%m%d')}.csv"
+            if csv_summary_path.exists():
+                logger.info(f"Adding CSV summary from {csv_summary_path}")
+                combined_content.append("## CSV Data Summary")
+                combined_content.append("")
+                combined_content.append("Below is the tabular summary of all analyzed companies:")
+                combined_content.append("")
+                
+                # Read CSV and convert to markdown table
+                try:
+                    import pandas as pd
+                    df = pd.read_csv(csv_summary_path)
+                    
+                    # Limit columns for readability
+                    key_columns = ['CIK', 'Company_Name', 'Passes_All_Filters', 'Moat_Score', 'Margin_of_Safety']
+                    available_columns = [col for col in key_columns if col in df.columns]
+                    
+                    if available_columns:
+                        summary_df = df[available_columns]
+                        # Convert to markdown table
+                        combined_content.append(summary_df.to_markdown(index=False))
+                        combined_content.append("")
+                        combined_content.append(f"*Full CSV with {len(df.columns)} columns available in: {csv_summary_path.name}*")
+                    else:
+                        combined_content.append(f"CSV data available in: {csv_summary_path.name}")
+                    
+                except Exception as e:
+                    logger.warning(f"Could not parse CSV file: {e}")
+                    combined_content.append(f"CSV data available in: {csv_summary_path.name}")
+                
+                combined_content.append("")
+                combined_content.append("---")
+                combined_content.append("")
+            
+            # Add footer
+            combined_content.append("## Report Generation Details")
+            combined_content.append("")
+            combined_content.append(f"- **Analysis Date:** {target_date}")
+            combined_content.append(f"- **Companies Analyzed:** {len(company_dirs)}")
+            combined_content.append(f"- **Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            combined_content.append("")
+            combined_content.append("---")
+            combined_content.append("")
+            combined_content.append("*This combined report was generated by the SEC Analysis System using Charlie Munger's investment framework.*")
+            
+            # Save the combined report
+            output_filename = f"all_reports_{target_date.strftime('%Y%m%d')}.md"
+            output_path = Path(reports_base_dir) / output_filename
+            
+            final_content = '\n'.join(combined_content)
+            output_path.write_text(final_content)
+            
+            logger.info(f"Combined report saved to: {output_path}")
+            logger.info(f"Combined report contains {len(combined_content)} lines")
+            
+        except Exception as e:
+            logger.error(f"Failed to combine reports: {e}")
 
 
 def main():
@@ -493,11 +635,15 @@ def main():
     
     parser = argparse.ArgumentParser(description='Generate comprehensive SEC analysis reports')
     parser.add_argument('--date', type=str, help='Date to generate reports for (YYYY-MM-DD)', 
-                       default='2025-01-30')
+                       default=date.today().strftime('%Y-%m-%d'))
     parser.add_argument('--max-companies', type=int, default=15,
                        help='Maximum number of companies to analyze')
     parser.add_argument('--storage-path', type=str, default='sec_data',
                        help='Base storage path for SEC data')
+    parser.add_argument('--combine-only', action='store_true',
+                       help='Only combine existing reports into one big markdown file')
+    parser.add_argument('--reports-dir', type=str, default='reports',
+                       help='Base directory where reports are stored')
     
     args = parser.parse_args()
     
@@ -508,7 +654,14 @@ def main():
         return
     
     generator = FixedReportGenerator(args.storage_path)
-    generator.generate_reports_for_date(target_date, args.max_companies)
+    
+    if args.combine_only:
+        # Only combine existing reports
+        generator.combine_all_reports(target_date, args.reports_dir)
+    else:
+        # Generate reports and then combine them
+        generator.generate_reports_for_date(target_date, args.max_companies)
+        generator.combine_all_reports(target_date, args.reports_dir)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ A comprehensive system for downloading, parsing, and analyzing SEC filings using
 - **Munger Analysis Framework**: Applies Charlie Munger's four investment filters and valuation methods
 - **Automated Processing**: Batch processing with error handling and incremental updates
 - **Multiple Output Formats**: Generates both JSON data and human-readable Markdown reports
+- **Combined Reports**: Combines all individual reports into one comprehensive markdown file
 
 ### Installation
 
@@ -45,6 +46,27 @@ python main.py --storage-path /path/to/sec_data
 #### Skip analysis (download and organize only):
 ```bash
 python main.py --no-analysis
+```
+
+#### Combine all reports into one big markdown file:
+```bash
+# Combine reports for a specific date
+python combine_reports.py --date 2025-05-30
+
+# Use custom reports directory
+python combine_reports.py --date 2025-05-30 --reports-dir /path/to/reports
+
+# Save with custom filename
+python combine_reports.py --date 2025-05-30 --output combined_analysis.md
+```
+
+#### Combine reports using the main report generator:
+```bash
+# Generate new reports and combine them
+python fixed_reports.py --date 2025-05-30
+
+# Only combine existing reports (no regeneration)
+python fixed_reports.py --date 2025-05-30 --combine-only
 ```
 
 ### Directory Structure
@@ -95,6 +117,23 @@ The system implements Charlie Munger's investment framework:
 - CAPEX vs Depreciation reality check
 - True Owner Earnings calculation
 - Historical trend analysis
+
+### Combined Reports
+
+The system now supports combining all individual reports for a given date into one comprehensive markdown file. This feature creates a single document containing:
+
+1. **Table of Contents** - Navigation links to all sections
+2. **Executive Summary** - Market overview and top investment opportunities  
+3. **Individual Company Analysis** - All company reports in sequence
+4. **CSV Data Summary** - Tabular summary of all metrics
+
+The combined report is saved as `all_reports_YYYYMMDD.md` in the reports directory and includes:
+- Proper markdown formatting with headers and sections
+- Conversion of CSV data to readable markdown tables
+- Navigation-friendly table of contents
+- Report generation metadata and statistics
+
+This makes it easy to review all analysis results in a single document while maintaining the granular individual reports for detailed reference.
 
 ### Testing
 
