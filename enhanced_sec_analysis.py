@@ -269,6 +269,7 @@ class EnhancedSECAnalyzer:
             
             # Use current results for report generation
             if analysis_results:
+                self._generate_prolog_summary(analysis_results, target_date)
                 self._generate_csv_summary(analysis_results, target_date)
                 self._generate_executive_summary(analysis_results, target_date)
             
@@ -347,15 +348,17 @@ Analysis is based on available metadata and estimated financial metrics.
     def _generate_company_markdown_report(self, analysis: AnalysisResult, target_date: date):
         """Generate individual markdown report for a company."""
         try:
-            # Create directory structure 
+            # Create directory structure: reports/{CIK}_{COMPANY_NAME}/{DATE}/
+            company_name_clean = analysis.company_name.replace(' ', '_').replace(',', '').replace('.', '').replace('/', '_').replace('&', 'and').replace("'", "").replace('"', '')
+            company_dir_name = f"{analysis.cik}_{company_name_clean}"
             date_str = target_date.strftime('%Y-%m-%d')
-            reports_dir = self.reports_path / date_str / analysis.cik
-            reports_dir.mkdir(parents=True, exist_ok=True)
+            
+            company_reports_dir = self.reports_path / company_dir_name / date_str
+            company_reports_dir.mkdir(parents=True, exist_ok=True)
             
             # Generate filename
-            company_name_clean = analysis.company_name.replace(' ', '_').replace(',', '').replace('.', '').replace('/', '_')
             filename = f"{company_name_clean}_{target_date.strftime('%Y%m%d')}_munger_analysis.md"
-            filepath = reports_dir / filename
+            filepath = company_reports_dir / filename
             
             # Generate markdown content
             content = self._create_markdown_content(analysis)
@@ -518,6 +521,176 @@ Based on Charlie Munger's investment framework, this company {'meets' if passes_
         
         return "\n".join(concerns) if concerns else "- No major concerns identified in current analysis"
 
+    def _generate_prolog_summary(self, analysis_results: List[AnalysisResult], target_date: date):
+        """Generate Prolog data summary of all analyses (saved as .md file)."""
+        try:
+            date_str = target_date.strftime('%Y-%m-%d')
+            # Keep the summary in the traditional date-based structure for easy access
+            output_dir = self.reports_path / date_str
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            prolog_filename = f"munger_analysis_summary_{target_date.strftime('%Y%m%d')}.md"
+            prolog_path = output_dir / prolog_filename
+            
+            with open(prolog_path, 'w') as f:
+                f.write("% Munger Investment Analysis Knowledge Base\n")
+                f.write(f"% Generated: {datetime.now().isoformat()}\n")
+                f.write(f"% Analysis Date: {date_str}\n")
+                f.write("% Format: Prolog facts for logical analysis\n\n")
+                
+                # Add discontiguous declarations to avoid warnings
+                f.write("% Predicate declarations\n")
+                f.write(":- discontiguous company/4.\n")
+                f.write(":- discontiguous passes_all_munger_filters/2.\n")
+                f.write(":- discontiguous roe_above_15_for_5_years/2.\n")
+                f.write(":- discontiguous debt_equity_below_8_percent/2.\n")
+                f.write(":- discontiguous management_ownership_above_5_percent/2.\n")
+                f.write(":- discontiguous consistent_earnings_growth/2.\n")
+                f.write(":- discontiguous moat_analysis/6.\n")
+                f.write(":- discontiguous valuation_scenarios/5.\n")
+                f.write(":- discontiguous financial_forensics/7.\n")
+                f.write(":- discontiguous business_analysis/4.\n")
+                f.write(":- discontiguous investment_grade/2.\n\n")
+                
+                # Group all facts by type for better organization
+                # First collect all data
+                company_facts = []
+                munger_filter_facts = []
+                moat_facts = []
+                valuation_facts = []
+                forensics_facts = []
+                business_facts = []
+                grade_facts = []
+                
+                for analysis in analysis_results:
+                    cik = analysis.cik
+                    company_name = analysis.company_name.replace("'", "\\'").replace('"', '\\"')
+                    
+                    # Basic company information
+                    company_facts.append(f"company('{cik}', '{company_name}', '{analysis.analysis_date}', '{analysis.form_type}').")
+                    
+                    # Munger filters as individual facts
+                    munger_filter_facts.extend([
+                        f"passes_all_munger_filters('{cik}', {str(analysis.munger_filters.passes_all_filters).lower()}).",
+                        f"roe_above_15_for_5_years('{cik}', {str(analysis.munger_filters.roe_above_15_for_5_years).lower()}).",
+                        f"debt_equity_below_8_percent('{cik}', {str(analysis.munger_filters.debt_equity_below_8_percent).lower()}).",
+                        f"management_ownership_above_5_percent('{cik}', {str(analysis.munger_filters.management_ownership_above_5_percent).lower()}).",
+                        f"consistent_earnings_growth('{cik}', {str(analysis.munger_filters.consistent_earnings_growth).lower()})."
+                    ])
+                    
+                    # Moat analysis as compound fact
+                    moat_facts.append(f"moat_analysis('{cik}', {analysis.moat_score.total_score}, "
+                                     f"{analysis.moat_score.market_share_stability}, "
+                                     f"{analysis.moat_score.patent_portfolio_strength}, "
+                                     f"{analysis.moat_score.customer_retention_rate}, "
+                                     f"{analysis.moat_score.pricing_power_evidence}).")
+                    
+                    # Valuation scenarios
+                    margin_safety = analysis.margin_of_safety or 0.0
+                    valuation_facts.append(f"valuation_scenarios('{cik}', {margin_safety}, "
+                                          f"{analysis.valuation_scenarios[0].intrinsic_value}, "
+                                          f"{analysis.valuation_scenarios[1].intrinsic_value}, "
+                                          f"{analysis.valuation_scenarios[2].intrinsic_value}).")
+                    
+                    # Financial forensics
+                    forensics_facts.append(f"financial_forensics('{cik}', {analysis.financial_forensics.benford_law_score}, "
+                                          f"{analysis.financial_forensics.capex_vs_depreciation_ratio}, "
+                                          f"{analysis.financial_forensics.true_owner_earnings}, "
+                                          f"{analysis.financial_forensics.roe_5_year_avg}, "
+                                          f"{analysis.financial_forensics.debt_equity_ratio}, "
+                                          f"{analysis.financial_forensics.management_ownership_pct}).")
+                    
+                    # Business analysis
+                    business_facts.append(f"business_analysis('{cik}', {len(analysis.business_model_changes)}, "
+                                         f"{len(analysis.financial_anomalies)}, "
+                                         f"{len(analysis.mental_model_conflicts)}).")
+                    
+                    # Investment grade
+                    investment_grade = self._calculate_investment_grade(analysis)
+                    grade_facts.append(f"investment_grade('{cik}', '{investment_grade}').")
+                
+                # Write facts grouped by type
+                f.write("% Company Information\n")
+                for fact in company_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                f.write("% Munger Filter Results\n")
+                for fact in munger_filter_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                f.write("% Moat Analysis\n")
+                for fact in moat_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                f.write("% Valuation Scenarios\n")
+                for fact in valuation_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                f.write("% Financial Forensics\n")
+                for fact in forensics_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                f.write("% Business Analysis\n")
+                for fact in business_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                f.write("% Investment Grades\n")
+                for fact in grade_facts:
+                    f.write(fact + "\n")
+                f.write("\n")
+                
+                # Add logical rules for investment analysis
+                f.write("% Investment Analysis Rules\n")
+                f.write("% Rule: Excellent investment candidate\n")
+                f.write("excellent_investment(CIK) :-\n")
+                f.write("    passes_all_munger_filters(CIK, true),\n")
+                f.write("    moat_analysis(CIK, MoatScore, _, _, _, _),\n")
+                f.write("    MoatScore >= 8.0,\n")
+                f.write("    valuation_scenarios(CIK, MarginSafety, _, _, _),\n")
+                f.write("    MarginSafety >= 0.20.\n\n")
+                
+                f.write("% Rule: Good investment candidate\n")
+                f.write("good_investment(CIK) :-\n")
+                f.write("    passes_all_munger_filters(CIK, true),\n")
+                f.write("    moat_analysis(CIK, MoatScore, _, _, _, _),\n")
+                f.write("    MoatScore >= 7.0.\n\n")
+                
+                f.write("% Rule: High moat but risky pricing\n")
+                f.write("overpriced_quality(CIK) :-\n")
+                f.write("    moat_analysis(CIK, MoatScore, _, _, _, _),\n")
+                f.write("    MoatScore >= 8.0,\n")
+                f.write("    valuation_scenarios(CIK, MarginSafety, _, _, _),\n")
+                f.write("    MarginSafety < 0.10.\n\n")
+                
+                f.write("% Rule: Value trap detection\n")
+                f.write("potential_value_trap(CIK) :-\n")
+                f.write("    valuation_scenarios(CIK, MarginSafety, _, _, _),\n")
+                f.write("    MarginSafety >= 0.15,\n")
+                f.write("    moat_analysis(CIK, MoatScore, _, _, _, _),\n")
+                f.write("    MoatScore < 5.0.\n\n")
+                
+                f.write("% Rule: Financial red flags\n")
+                f.write("financial_red_flags(CIK) :-\n")
+                f.write("    financial_forensics(CIK, BenfordScore, _, _, _, _, _),\n")
+                f.write("    BenfordScore < 5.0.\n\n")
+                
+                f.write("% Rule: Management alignment\n")
+                f.write("strong_management_alignment(CIK) :-\n")
+                f.write("    management_ownership_above_5_percent(CIK, true),\n")
+                f.write("    business_analysis(CIK, BusinessChanges, _, _),\n")
+                f.write("    BusinessChanges =< 2.\n\n")
+            
+            logger.info(f"Generated Prolog summary: {prolog_path}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate Prolog summary: {e}")
+
     def _generate_csv_summary(self, analysis_results: List[AnalysisResult], target_date: date):
         """Generate CSV summary of all analyses."""
         try:
@@ -569,7 +742,7 @@ Based on Charlie Munger's investment framework, this company {'meets' if passes_
             # Create DataFrame
             df = pd.DataFrame(summary_data)
             
-            # Save CSV
+            # Save CSV (keeping for backward compatibility)
             date_str = target_date.strftime('%Y-%m-%d')
             output_dir = self.reports_path / date_str
             output_dir.mkdir(parents=True, exist_ok=True)

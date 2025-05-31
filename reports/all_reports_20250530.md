@@ -18,9 +18,10 @@
 
 ## 📊 **Market Overview**
 
-**Total Companies Analyzed:** 15  
-**Munger Filter Pass Rate:** 0/15 (0.0%)  
-**Average Moat Score:** 7.9/10  
+**Analysis Date:** 2025-05-30  
+**Total Companies Analyzed:** 2  
+**Munger Filter Pass Rate:** 0/2 (0.0%)  
+**Average Moat Score:** 7.8/10  
 **Average Margin of Safety:** 0.0%
 
 ---
@@ -31,16 +32,8 @@
 No companies currently pass all Munger filters.
 
 ### Top Overall Performers:
-1. **JPMORGAN CHASE & CO** - Moat: 9.0, Margin: 0.0%, Grade: D
-2. **ALPHABET INC** - Moat: 8.8, Margin: 0.0%, Grade: D
-3. **NVIDIA CORP** - Moat: 8.7, Margin: 0.0%, Grade: D
-4. **PROCTER & GAMBLE CO/THE** - Moat: 8.6, Margin: 0.0%, Grade: D
-5. **AMAZON COM INC** - Moat: 8.5, Margin: 0.0%, Grade: D
-6. **MICROSOFT CORP** - Moat: 8.4, Margin: 0.0%, Grade: D
-7. **UNITEDHEALTH GROUP INC** - Moat: 8.1, Margin: 0.0%, Grade: D
-8. **BERKSHIRE HATHAWAY INC** - Moat: 7.7, Margin: 0.0%, Grade: D
-9. **JOHNSON & JOHNSON** - Moat: 7.5, Margin: 0.0%, Grade: D
-10. **TESLA INC** - Moat: 7.4, Margin: 0.0%, Grade: D
+1. **COLUMBUS MCKINNON CORP** - Moat: 8.3, Margin: 0.0%, Grade: D
+2. **DISH NETWORK CORP** - Moat: 7.4, Margin: 0.0%, Grade: D
 
 ---
 
@@ -49,7 +42,7 @@ No companies currently pass all Munger filters.
 Based on Charlie Munger's investment framework:
 
 1. **Focus on Quality:** 0 companies meet all filter criteria
-2. **Strong Moats:** 15 companies have strong competitive positions
+2. **Strong Moats:** 2 companies have strong competitive positions
 3. **Attractive Valuations:** 0 companies offer significant margins of safety
 
 ---
@@ -1084,7 +1077,193 @@ Based on Charlie Munger's investment framework, this company does not meet our s
 
 ---
 
-### Company 12: Amazon Com Inc 20250530 Munger Analysis
+### Company 12: Dish Network Corp 20250530 Munger Analysis
+
+
+**CIK:** 0001001082  
+**Analysis Date:** 2025-05-31  
+**Form Type:** 8-K
+
+---
+
+## ❌ **Overall Assessment: FAILS Munger Filters**
+
+---
+
+## 🛡️ **Munger's Four Filters Analysis**
+
+| Filter | Status | Details |
+|--------|--------|---------|
+| **ROE >15% for 5 Years** | ❌ FAIL | Demonstrates exceptional capital efficiency and management quality |
+| **Low Debt/Equity (<8%)** | ❌ FAIL | Conservative capital structure reduces financial risk |
+| **Management Ownership >5%** | ✅ PASS | Management has skin in the game |
+| **Consistent Earnings Growth** | ❌ FAIL | Predictable and growing earnings demonstrate business quality |
+
+---
+
+## 🛡️ **STRONG MOAT**
+
+### **Overall Moat Score: 7.4/10**
+
+| Component | Weight | Score | Contribution |
+|-----------|--------|-------|--------------|
+| **Market Share Stability** | 40% | 9.0/10 | 3.6 |
+| **Patent Portfolio Strength** | 30% | 6.0/10 | 1.8 |
+| **Customer Retention Rate** | 20% | 7.2/10 | 1.4 |
+| **Pricing Power Evidence** | 10% | 5.8/10 | 0.6 |
+
+---
+
+## 💰 **Valuation Analysis**
+
+### **Margin of Safety: 0.0% 🔴 **UNATTRACTIVE****
+
+### Three-Scenario DCF Analysis:
+
+| Scenario | Discount Rate | Terminal Growth | Intrinsic Value | Assessment |
+|----------|---------------|-----------------|-----------------|------------|
+| **🐻 Bear Case** | 8.0% | 2.0% | $36 | Conservative estimate |
+| **📊 Base Case** | 10.0% | 1.0% | $29 | Most likely scenario |
+| **🚀 Bull Case** | 6.0% | 3.0% | $47 | Optimistic projection |
+
+---
+
+## 🔍 **Financial Forensics**
+
+### Key Metrics
+- **Benford's Law Score:** 0.7346543721232692/10
+- **CAPEX vs Depreciation:** 1.2x
+- **True Owner Earnings:** $8,596,542,473
+- **5-Year Average ROE:** 1734.1%
+- **Debt/Equity Ratio:** 3298.7%
+- **Management Ownership:** 239.9%
+
+---
+
+## 📈 **Business Model Assessment**
+
+### Change Detection
+- **Business Model Changes:** 0 detected
+- **Financial Anomalies:** 1 identified
+- **Mental Model Conflicts:** 1 found
+
+---
+
+## 🎯 **Investment Recommendation**
+
+Based on Charlie Munger's investment framework, this company does not meet our stringent criteria for long-term value investing.
+
+### Key Strengths:
+- Strong competitive moat with durable advantages
+
+### Key Concerns:
+- ROE below Munger's 15% threshold
+- High debt levels create financial risk
+- Inconsistent or declining earnings trend
+- Limited margin of safety at current prices
+- Potential accounting irregularities detected
+
+---
+
+*This analysis was generated using Charlie Munger's investment framework focusing on high-quality businesses with durable competitive advantages, purchased at attractive prices with sufficient margin of safety.*
+
+
+---
+
+### Company 13: Columbus Mckinnon Corp 20250530 Munger Analysis
+
+
+**CIK:** 0001005229  
+**Analysis Date:** 2025-05-31  
+**Form Type:** 8-K
+
+---
+
+## ❌ **Overall Assessment: FAILS Munger Filters**
+
+---
+
+## 🛡️ **Munger's Four Filters Analysis**
+
+| Filter | Status | Details |
+|--------|--------|---------|
+| **ROE >15% for 5 Years** | ❌ FAIL | Demonstrates exceptional capital efficiency and management quality |
+| **Low Debt/Equity (<8%)** | ❌ FAIL | Conservative capital structure reduces financial risk |
+| **Management Ownership >5%** | ❌ FAIL | Management has skin in the game |
+| **Consistent Earnings Growth** | ❌ FAIL | Predictable and growing earnings demonstrate business quality |
+
+---
+
+## 🏰 **EXCEPTIONAL MOAT**
+
+### **Overall Moat Score: 8.3/10**
+
+| Component | Weight | Score | Contribution |
+|-----------|--------|-------|--------------|
+| **Market Share Stability** | 40% | 7.9/10 | 3.2 |
+| **Patent Portfolio Strength** | 30% | 8.7/10 | 2.6 |
+| **Customer Retention Rate** | 20% | 8.3/10 | 1.7 |
+| **Pricing Power Evidence** | 10% | 8.3/10 | 0.8 |
+
+---
+
+## 💰 **Valuation Analysis**
+
+### **Margin of Safety: 0.0% 🔴 **UNATTRACTIVE****
+
+### Three-Scenario DCF Analysis:
+
+| Scenario | Discount Rate | Terminal Growth | Intrinsic Value | Assessment |
+|----------|---------------|-----------------|-----------------|------------|
+| **🐻 Bear Case** | 8.0% | 2.0% | $324 | Conservative estimate |
+| **📊 Base Case** | 10.0% | 1.0% | $250 | Most likely scenario |
+| **🚀 Bull Case** | 6.0% | 3.0% | $465 | Optimistic projection |
+
+---
+
+## 🔍 **Financial Forensics**
+
+### Key Metrics
+- **Benford's Law Score:** 0.7272554320847145/10
+- **CAPEX vs Depreciation:** 2.3x
+- **True Owner Earnings:** $9,383,187,865
+- **5-Year Average ROE:** 1565.3%
+- **Debt/Equity Ratio:** 3383.0%
+- **Management Ownership:** 1078.0%
+
+---
+
+## 📈 **Business Model Assessment**
+
+### Change Detection
+- **Business Model Changes:** 1 detected
+- **Financial Anomalies:** 1 identified
+- **Mental Model Conflicts:** 1 found
+
+---
+
+## 🎯 **Investment Recommendation**
+
+Based on Charlie Munger's investment framework, this company does not meet our stringent criteria for long-term value investing.
+
+### Key Strengths:
+- Strong competitive moat with durable advantages
+
+### Key Concerns:
+- ROE below Munger's 15% threshold
+- High debt levels create financial risk
+- Inconsistent or declining earnings trend
+- Limited margin of safety at current prices
+- Potential accounting irregularities detected
+
+---
+
+*This analysis was generated using Charlie Munger's investment framework focusing on high-quality businesses with durable competitive advantages, purchased at attractive prices with sufficient margin of safety.*
+
+
+---
+
+### Company 14: Amazon Com Inc 20250530 Munger Analysis
 
 
 **CIK:** 0001018724  
@@ -1177,7 +1356,7 @@ Based on Charlie Munger's investment framework, this company does not meet our s
 
 ---
 
-### Company 13: Tesla Inc 20250530 Munger Analysis
+### Company 15: Tesla Inc 20250530 Munger Analysis
 
 
 **CIK:** 0001318605  
@@ -1270,7 +1449,7 @@ Based on Charlie Munger's investment framework, this company does not meet our s
 
 ---
 
-### Company 14: Meta Platforms Inc 20250530 Munger Analysis
+### Company 16: Meta Platforms Inc 20250530 Munger Analysis
 
 
 **CIK:** 0001326801  
@@ -1363,7 +1542,7 @@ Based on Charlie Munger's investment framework, this company does not meet our s
 
 ---
 
-### Company 15: Alphabet Inc 20250530 Munger Analysis
+### Company 17: Alphabet Inc 20250530 Munger Analysis
 
 
 **CIK:** 0001652044  
@@ -1460,23 +1639,10 @@ Based on Charlie Munger's investment framework, this company does not meet our s
 
 Below is the tabular summary of all analyzed companies:
 
-|     CIK | Company_Name            |   Margin_of_Safety |
-|--------:|:------------------------|-------------------:|
-|  320193 | APPLE INC               |                  0 |
-|  789019 | MICROSOFT CORP          |                  0 |
-| 1018724 | AMAZON COM INC          |                  0 |
-| 1652044 | ALPHABET INC            |                  0 |
-| 1318605 | TESLA INC               |                  0 |
-| 1326801 | META PLATFORMS INC      |                  0 |
-|  909832 | NVIDIA CORP             |                  0 |
-|  886982 | BERKSHIRE HATHAWAY INC  |                  0 |
-|  200406 | JOHNSON & JOHNSON       |                  0 |
-|   78003 | EXXON MOBIL CORP        |                  0 |
-|   19617 | JPMORGAN CHASE & CO     |                  0 |
-|   21344 | PROCTER & GAMBLE CO/THE |                  0 |
-|  732712 | UNITEDHEALTH GROUP INC  |                  0 |
-|   40545 | VISA INC                |                  0 |
-|  858877 | WALMART INC             |                  0 |
+|     CIK | Company_Name           | Passes_All_Filters   |   Moat_Score |   Margin_of_Safety |
+|--------:|:-----------------------|:---------------------|-------------:|-------------------:|
+| 1001082 | DISH NETWORK CORP      | False                |      7.41749 |                  0 |
+| 1005229 | COLUMBUS MCKINNON CORP | False                |      8.28141 |                  0 |
 
 *Full CSV with 28 columns available in: munger_analysis_summary_20250530.csv*
 
@@ -1485,9 +1651,9 @@ Below is the tabular summary of all analyzed companies:
 ## Report Generation Details
 
 - **Analysis Date:** 2025-05-30
-- **Companies Analyzed:** 15
-- **Generated:** 2025-05-30 22:43:44
+- **Companies Analyzed:** 17
+- **Generated:** 2025-05-31 08:53:33
 
 ---
 
-*This combined report was generated by the SEC Analysis System using Charlie Munger's investment framework.*
+*This combined report was generated by the Enhanced SEC Analysis System using Charlie Munger's investment framework.*
