@@ -1,0 +1,27 @@
+{
+  "test_summary": {
+    "total_files": 1,
+    "timestamp": "2025-05-31T08:57:00.365713",
+    "swipl_available": true,
+    "syntax_valid_count": 1,
+    "queries_successful_count": 0,
+    "overall_success_rate": "0.0%"
+  },
+  "file_results": [
+    {
+      "file": "reports/2025-05-30/munger_analysis_summary_20250530.md",
+      "timestamp": "2025-05-31T08:57:00.365747",
+      "tests": {
+        "syntax": {
+          "status": "valid",
+          "stdout": "",
+          "stderr": ""
+        },
+        "queries": {
+          "status": "error",
+          "error": "Command '['swipl', '-g', \"\\n                    consult('/tmp/tmp1g7mzhje.pl'),\\n                    findall(CIK, excellent_investment(CIK), ExcellentList), length(ExcellentList, ExcellentCount), write('Excellent investments: '), write(ExcellentCount), nl.\\n                    halt.\\n                \"]' timed out after 30 seconds"
+        }
+      }
+    }
+  ]
+}
